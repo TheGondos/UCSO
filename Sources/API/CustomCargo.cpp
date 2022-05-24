@@ -1,6 +1,6 @@
 // =======================================================================================
 // CustomCargo.cpp : The custom cargoes' public API class.
-// Copyright © 2020-2021 Abdullah Radwan. All rights reserved.
+// Copyright ï¿½ 2020-2021 Abdullah Radwan. All rights reserved.
 //
 // This file is part of UCSO.
 //
@@ -22,6 +22,8 @@
 #include "CustomCargo.h"
 #include "CustomCargoAPI.h"
 #include "Helper.h"
+#include <string.h>
+#define _strdup strdup
 
 UCSO::CustomCargo::CustomCargo() { customCargoAPI = new CustomCargoAPI(this); }
 

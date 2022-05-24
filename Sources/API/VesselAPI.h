@@ -1,6 +1,6 @@
 // =======================================================================================
 // VesselAPI.h : The internal header of the vessels' API.
-// Copyright © 2020-2021 Abdullah Radwan. All rights reserved.
+// Copyright ï¿½ 2020-2021 Abdullah Radwan. All rights reserved.
 //
 // This file is part of UCSO.
 //
@@ -26,7 +26,7 @@
 
 #include "Vessel.h"
 #include "CustomCargo.h"
-#include "..\Cargo\Cargo.h"
+#include "../Cargo/Cargo.h"
 
 typedef const char* (*GetVersionFunction)();
 typedef UCSO::CustomCargo* (*CustomCargoFunction)(OBJHANDLE);
@@ -99,7 +99,7 @@ public:
 private:
 	VESSEL* vessel;
 	const char* version = nullptr;
-	HINSTANCE customCargoDll = nullptr;
+	oapi::DynamicModule *customCargoDll = nullptr;
 	CustomCargoFunction GetCustomCargo = nullptr;
 
 	struct SlotData 

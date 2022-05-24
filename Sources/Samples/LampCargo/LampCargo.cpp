@@ -1,6 +1,6 @@
 // =======================================================================================
 // LampCargo.cpp : The lamp custom cargo class.
-// Copyright © 2020-2021 Abdullah Radwan. All rights reserved.
+// Copyright ï¿½ 2020-2021 Abdullah Radwan. All rights reserved.
 //
 // This file is part of UCSO.
 //
@@ -21,6 +21,7 @@
 
 #include "LampCargo.h"
 #include <sstream>
+#include <cstring>
 
 DLLCLBK VESSEL* ovcInit(OBJHANDLE hvessel, int flightmodel) { return new LampCargo(hvessel, flightmodel); }
 
@@ -123,7 +124,7 @@ bool LampCargo::UnpackCargo(bool once)
 		std::string spawnName = "CargoCustomLamp";
 		spawnName = SetSpawnName(spawnName.c_str());
 
-		OBJHANDLE cargoHandle = oapiCreateVesselEx(spawnName.c_str(), GetClassNameA(), &status);
+		OBJHANDLE cargoHandle = oapiCreateVesselEx(spawnName.c_str(), GetClassName(), &status);
 
 		if (!cargoHandle) return false;
 

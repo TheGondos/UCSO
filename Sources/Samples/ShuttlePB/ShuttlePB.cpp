@@ -11,6 +11,7 @@
 // ==============================================================
 
 #include "ShuttlePB.h"
+#include <cstring>
 
 // ==============================================================
 // Overloaded callback functions
@@ -21,7 +22,7 @@ ShuttlePB::ShuttlePB(OBJHANDLE hVessel, int flightmodel) : VESSEL4(hVessel, flig
 	ucso = UCSO::Vessel::CreateInstance(this);
 
 	sprintf(buffer, "UCSO version: %s", ucso->GetUCSOVersion());
-	message = _strdup(buffer);
+	message = strdup(buffer);
 }
 
 ShuttlePB::~ShuttlePB() { delete ucso; }
@@ -187,7 +188,7 @@ void ShuttlePB::clbkSetClassCaps (FILEHANDLE cfg)
 	ucso->SetSlotAttachment(0, attachmentHandle);
 }
 
-int ShuttlePB::clbkConsumeBufferedKey(DWORD key, bool down, char* kstate)
+int ShuttlePB::clbkConsumeBufferedKey(int key, bool down, char* kstate)
 {
 	if (!down) return 0;
 
@@ -294,7 +295,7 @@ int ShuttlePB::clbkConsumeBufferedKey(DWORD key, bool down, char* kstate)
 			{
 				SetFuelMass(GetFuelMass() + drainedMass);
 				sprintf(buffer, "%g kilograms of fuel was drained", drainedMass);
-				message = _strdup(buffer);
+				message = strdup(buffer);
 			}
 			else message = "Couldn't drain fuel.";
 

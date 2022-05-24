@@ -1,6 +1,6 @@
 // =======================================================================================
 // XR2_Platform.cpp : The platform class.
-// Copyright © 2020-2021 Abdullah Radwan. All rights reserved.
+// Copyright ï¿½ 2020-2021 Abdullah Radwan. All rights reserved.
 //
 // This file is part of UCSO.
 //
@@ -21,6 +21,7 @@
 
 #include "XR2_Platform.h"
 #include <sstream>
+#include <cstring>
 
 DLLCLBK VESSEL* ovcInit(OBJHANDLE hvessel, int flightmodel) { return new XR2_Platform(hvessel, flightmodel); }
 
@@ -31,7 +32,7 @@ XR2_Platform::XR2_Platform(OBJHANDLE hVessel, int flightmodel) : VESSEL4(hVessel
 	ucso = UCSO::Vessel::CreateInstance(this);
 
 	sprintf(buffer, "UCSO version: %s", ucso->GetUCSOVersion());
-	message = _strdup(buffer);
+	message = strdup(buffer);
 }
 
 XR2_Platform::~XR2_Platform() { delete ucso; delete xrSound; }
@@ -62,13 +63,13 @@ void XR2_Platform::clbkPostCreation()
 
 	xrSound = XRSound::CreateInstance(this);
 
-	xrSound->LoadWav(SFX_BAY_DOORS_CLOSED, "XRSound\\Default\\Bay Doors Are Closed.wav", XRSound::InternalOnly);
-	xrSound->LoadWav(SFX_SLOT_EMPTY, "XRSound\\Default\\Slot is Empty.wav", XRSound::InternalOnly);
-	xrSound->LoadWav(SFX_SLOT_OCCUPIED, "XRSound\\Default\\Slot Is Full.wav", XRSound::InternalOnly);
-	xrSound->LoadWav(SFX_CARGO_RELEASED, "XRSound\\Default\\Cargo Deployed.wav", XRSound::InternalOnly);
-	xrSound->LoadWav(SFX_CARGO_RELEASE_FAILED, "XRSound\\Default\\Cargo Deployment Failed.wav", XRSound::InternalOnly);
-	xrSound->LoadWav(SFX_CARGO_GRAPPLED, "XRSound\\Default\\Cargo Latched In Bay.wav", XRSound::InternalOnly);
-	xrSound->LoadWav(SFX_CARGO_GRAPPLE_NORANGE, "XRSound\\Default\\No Cargo in Grapple Range.wav", XRSound::InternalOnly);
+	xrSound->LoadWav(SFX_BAY_DOORS_CLOSED, "XRSound/Default/Bay Doors Are Closed.wav", XRSound::PlaybackType::InternalOnly);
+	xrSound->LoadWav(SFX_SLOT_EMPTY, "XRSound/Default/Slot is Empty.wav", XRSound::PlaybackType::InternalOnly);
+	xrSound->LoadWav(SFX_SLOT_OCCUPIED, "XRSound/Default/Slot Is Full.wav", XRSound::PlaybackType::InternalOnly);
+	xrSound->LoadWav(SFX_CARGO_RELEASED, "XRSound/Default/Cargo Deployed.wav", XRSound::PlaybackType::InternalOnly);
+	xrSound->LoadWav(SFX_CARGO_RELEASE_FAILED, "XRSound/Default/Cargo Deployment Failed.wav", XRSound::PlaybackType::InternalOnly);
+	xrSound->LoadWav(SFX_CARGO_GRAPPLED, "XRSound/Default/Cargo Latched In Bay.wav", XRSound::PlaybackType::InternalOnly);
+	xrSound->LoadWav(SFX_CARGO_GRAPPLE_NORANGE, "XRSound/Default/No Cargo in Grapple Range.wav", XRSound::PlaybackType::InternalOnly);
 }
 
 void XR2_Platform::clbkPreStep(double simt, double simdt, double mjd)
@@ -85,7 +86,7 @@ void XR2_Platform::clbkPreStep(double simt, double simdt, double mjd)
 	else if (!xr2Vessel || xr2Vessel->GetHandle() != xr2Handle)
 	{
 		VESSEL* vessel = oapiGetVesselInterface(xr2Handle);
-		if (XRVesselCtrl::IsXRVesselCtrl(vessel) && _strcmpi(vessel->GetClassNameA(), "XR2Ravenstar") == 0)
+		if (XRVesselCtrl::IsXRVesselCtrl(vessel) && strcmp(vessel->GetClassName(), "XR2Ravenstar") == 0)
 			xr2Vessel = static_cast<XRVesselCtrl*>(vessel);
 	}
 }
@@ -270,13 +271,13 @@ bool XR2_Platform::clbkDrawHUD(int mode, const HUDPAINTSPEC* hps, oapi::Sketchpa
 	return true;
 }
 
-int XR2_Platform::clbkConsumeBufferedKey(DWORD key, bool down, char* kstate)
+int XR2_Platform::clbkConsumeBufferedKey(int key, bool down, char* kstate)
 {
 	if (!down) return 0; // If the key is let go (not pressed)
 
 	if (realismMode)
 	{
-		if (xr2Vessel) ucso->SetSlotDoor(xr2Vessel->GetDoorState(XRD_PayloadBayDoors) == XRDS_Open);
+		if (xr2Vessel) ucso->SetSlotDoor(xr2Vessel->GetDoorState(XRDoorID::XRD_PayloadBayDoors) == XRDoorState::XRDS_Open);
 		else ucso->SetSlotDoor(true);
 	}
 
@@ -417,7 +418,7 @@ int XR2_Platform::clbkConsumeBufferedKey(DWORD key, bool down, char* kstate)
 				xr2Vessel->SetPropellantMass(tankHandle, xr2Vessel->GetPropellantMass(tankHandle) + drainedMass);
 
 				sprintf(buffer, "%g kilograms of fuel was drained", drainedMass);
-				message = _strdup(buffer);
+				message = strdup(buffer);
 			}
 			else message = "Couldn't drain fuel.";
 

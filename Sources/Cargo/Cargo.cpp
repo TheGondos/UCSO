@@ -1,6 +1,6 @@
 // =======================================================================================
 // Cargo.cpp : The cargo vessel's class.
-// Copyright © 2020-2021 Abdullah Radwan. All rights reserved.
+// Copyright ï¿½ 2020-2021 Abdullah Radwan. All rights reserved.
 //
 // This file is part of UCSO.
 //
@@ -21,6 +21,7 @@
 
 #include "Cargo.h"
 #include <sstream>
+#include <cstring>
 
 DLLCLBK VESSEL* ovcInit(OBJHANDLE hvessel, int flightmodel) { return new UCSO::Cargo(hvessel, flightmodel); }
 
@@ -136,7 +137,7 @@ void UCSO::Cargo::clbkSetClassCaps(FILEHANDLE cfg)
 
 void UCSO::Cargo::ThrowWarning(const char* warning)
 {
-	oapiWriteLogV("UCSO Fatal Error: The %s of %s cargo isn't specified", warning, GetClassNameA());
+	oapiWriteLogV("UCSO Fatal Error: The %s of %s cargo isn't specified", warning, GetClassName());
 
 	throw;
 }
@@ -277,11 +278,11 @@ bool UCSO::Cargo::UnpackCargo(bool once)
 
 		for (int cargo = 1; cargo < dataStruct.spawnCount; cargo++)
 		{
-			std::string spawnName = GetClassNameA();
+			std::string spawnName = GetClassName();
 			spawnName.erase(0, 5);
 			SetSpawnName(spawnName);
 
-			OBJHANDLE cargoHandle = oapiCreateVesselEx(spawnName.c_str(), GetClassNameA(), &status);
+			OBJHANDLE cargoHandle = oapiCreateVesselEx(spawnName.c_str(), GetClassName(), &status);
 
 			if (!cargoHandle) return false;
 

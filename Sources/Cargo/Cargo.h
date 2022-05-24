@@ -1,6 +1,6 @@
 // =======================================================================================
 // Cargo.h : The cargo vessel's header.
-// Copyright © 2020-2021 Abdullah Radwan. All rights reserved.
+// Copyright ï¿½ 2020-2021 Abdullah Radwan. All rights reserved.
 //
 // This file is part of UCSO.
 //
@@ -20,9 +20,9 @@
 // =======================================================================================
 
 #pragma once
-#include "..\API\Helper.h"
-
-DLLCLBK const char* GetUCSOVersion() { return _strdup("1.1.1"); }
+#include "../API/Helper.h"
+#include <string>
+DLLCLBK const char* GetUCSOVersion() { return "1.1.1"; }
 
 namespace UCSO
 {

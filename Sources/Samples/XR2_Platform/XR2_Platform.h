@@ -1,6 +1,6 @@
 // =======================================================================================
 // XR2_Platform.h : XR-2 Ravenstar UCSO cargoes platform.
-// Copyright © 2020-2021 Abdullah Radwan. All rights reserved.
+// Copyright ï¿½ 2020-2021 Abdullah Radwan. All rights reserved.
 //
 // This file is part of UCSO.
 //
@@ -36,7 +36,7 @@ public:
 	void clbkPreStep(double simt, double simdt, double mjd);
 	bool clbkDrawHUD(int mode, const HUDPAINTSPEC* hps, oapi::Sketchpad* skp);
 
-	int clbkConsumeBufferedKey(DWORD key, bool down, char* kstate);
+	int clbkConsumeBufferedKey(int key, bool down, char* kstate);
 	
 private:
 	UCSO::Vessel* ucso;

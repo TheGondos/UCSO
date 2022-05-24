@@ -24,7 +24,7 @@ public:
 	~ShuttlePB();
 
 	void clbkSetClassCaps(FILEHANDLE cfg);
-	int clbkConsumeBufferedKey(DWORD key, bool down, char* kstate);
+	int clbkConsumeBufferedKey(int key, bool down, char* kstate);
 	bool clbkDrawHUD(int mode, const HUDPAINTSPEC* hps, oapi::Sketchpad* skp);
 	void clbkPreStep(double simt, double simdt, double mjd);
 
@@ -76,7 +76,7 @@ const VECTOR3 PB_DOCK_DIR = { 0,1,0 };         // docking port approach directio
 const VECTOR3 PB_DOCK_ROT = { 0,0,-1 };        // docking port alignment direction
 
 // Define impact convex hull
-static const DWORD ntdvtx = 12;
+static const int ntdvtx = 12;
 static TOUCHDOWNVTX tdvtx[ntdvtx] =
 {
 	{_V(0,  -1.5, 2), 2e4, 1e3, 1.6, 1},

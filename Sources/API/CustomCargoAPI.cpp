@@ -1,6 +1,6 @@
 // =======================================================================================
 // CustomCargoAPI.cpp : The internal class of the custom cargoes' API.
-// Copyright © 2020-2021 Abdullah Radwan. All rights reserved.
+// Copyright ï¿½ 2020-2021 Abdullah Radwan. All rights reserved.
 //
 // This file is part of UCSO.
 //
@@ -26,24 +26,24 @@ UCSO::CustomCargoAPI::CustomCargoAPI(CustomCargo* customCargo)
 	this->customCargo = customCargo;
 
 	// Load the custom cargo DLL
-	customCargoDll = LoadLibraryA("Modules/UCSO/CustomCargo.dll");
+	customCargoDll = oapi::ModuleLoader::Load("Modules/UCSO/libCustomCargo.so");
 
 	if (customCargoDll)
 	{
-		AddCustomCargo = reinterpret_cast<CustomCargoFunction>(GetProcAddress(customCargoDll, "AddCustomCargo"));
+		AddCustomCargo = reinterpret_cast<CustomCargoFunction>((*customCargoDll)["AddCustomCargo"]);
 
-		DeleteCustomCargo = reinterpret_cast<CustomCargoFunction>(GetProcAddress(customCargoDll, "DeleteCustomCargo"));
+		DeleteCustomCargo = reinterpret_cast<CustomCargoFunction>((*customCargoDll)["DeleteCustomCargo"]);
 	}
 
 	// If the DLL is loaded and both functions are found
 	if (AddCustomCargo && DeleteCustomCargo) AddCustomCargo(customCargo);
 	else
 	{
-		if (customCargoDll) FreeLibrary(customCargoDll);
+		if (customCargoDll) oapi::ModuleLoader::Unload(customCargoDll);
 		oapiWriteLog("UCSO Fatal Error: Couldn't load the custom cargo API");
 		// Kill Orbiter
 		throw;
 	}
 }
 
-UCSO::CustomCargoAPI::~CustomCargoAPI() { DeleteCustomCargo(customCargo); FreeLibrary(customCargoDll); }
+UCSO::CustomCargoAPI::~CustomCargoAPI() { DeleteCustomCargo(customCargo); oapi::ModuleLoader::Unload(customCargoDll); }

@@ -1,6 +1,6 @@
 // =======================================================================================
 // UCSO_VesselAPI.cpp : The internal class of the vessels' API.
-// Copyright © 2020-2021 Abdullah Radwan. All rights reserved.
+// Copyright ï¿½ 2020-2021 Abdullah Radwan. All rights reserved.
 //
 // This file is part of UCSO.
 //
@@ -21,43 +21,39 @@
 
 #include "VesselAPI.h"
 #include <filesystem>
-
-void ExceptionHandler(unsigned int u, EXCEPTION_POINTERS* pExp) { throw; }
+#include <cstring>
 
 UCSO::Vessel* UCSO::Vessel::CreateInstance(VESSEL* vessel) { return new VesselAPI(vessel); }
 
 VesselAPI::VesselAPI(VESSEL* vessel)
 {
-	// Set the attachment exception handler
-	_set_se_translator(ExceptionHandler);
-
 	this->vessel = vessel;
 
 	// Load cargo DLL
-	HINSTANCE ucsoDll = LoadLibraryA("Modules/UCSO/Cargo.dll");
+	oapi::DynamicModule *ucsoDll = oapi::ModuleLoader::Load("Modules/UCSO/libCargo.so");
 
 	// If the DLL is loaded
 	if (ucsoDll)
 	{
-		GetVersionFunction GetCargoVersion = reinterpret_cast<GetVersionFunction>(GetProcAddress(ucsoDll, "GetUCSOVersion"));
+		GetVersionFunction GetCargoVersion = reinterpret_cast<GetVersionFunction>((*ucsoDll)["GetUCSOVersion"]);
 
 		// If the function is found, set the version
 		if (GetCargoVersion) version = GetCargoVersion();
 
-		FreeLibrary(ucsoDll);
+		oapi::ModuleLoader::Unload(ucsoDll);
 	} 
 
 	if (!version) oapiWriteLog("UCSO API Warning: Couldn't load the cargo API");
 
 	// Load custom cargo DLL
-	customCargoDll = LoadLibraryA("Modules/UCSO/CustomCargo.dll");
+	customCargoDll = oapi::ModuleLoader::Load("Modules/UCSO/libCustomCargo.so");
 
-	if (customCargoDll) GetCustomCargo = reinterpret_cast<CustomCargoFunction>(GetProcAddress(customCargoDll, "GetCustomCargo"));
+	if (customCargoDll) GetCustomCargo = reinterpret_cast<CustomCargoFunction>((*customCargoDll)["GetCustomCargo"]);
 
 	// If the DLL isn't loaded or the function couldn't be found
 	if (!GetCustomCargo) 
 	{
-		if (customCargoDll) FreeLibrary(customCargoDll);
+		if (customCargoDll) oapi::ModuleLoader::Unload(customCargoDll);
 
 		oapiWriteLog("UCSO API Warning: Couldn't load the custom cargo API");
 
@@ -68,7 +64,7 @@ VesselAPI::VesselAPI(VESSEL* vessel)
 	if (version) InitAvailableCargo();
 }
 
-VesselAPI::~VesselAPI() { if (customCargoDll) FreeLibrary(customCargoDll); }
+VesselAPI::~VesselAPI() { if (customCargoDll) oapi::ModuleLoader::Unload(customCargoDll); }
 
 const char* VesselAPI::GetUCSOVersion() { return version; }
 
@@ -154,7 +150,7 @@ VesselAPI::CargoInfo VesselAPI::GetCargoInfo(int slot)
 		switch (cargoInfo.type)
 		{
 		case RESOURCE:
-			cargoInfo.resource = _strdup(customInfo.resource);
+			cargoInfo.resource = strdup(customInfo.resource);
 			cargoInfo.resourceMass = customInfo.resourceMass;
 
 			break;
@@ -180,7 +176,7 @@ VesselAPI::CargoInfo VesselAPI::GetCargoInfo(int slot)
 	switch (cargoInfo.type)
 	{
 	case RESOURCE:
-		cargoInfo.resource = _strdup(dataStruct.resource.c_str());
+		cargoInfo.resource = strdup(dataStruct.resource.c_str());
 		cargoInfo.resourceMass = dataStruct.netMass;
 
 		break;
@@ -192,7 +188,7 @@ VesselAPI::CargoInfo VesselAPI::GetCargoInfo(int slot)
 
 		if (cargoInfo.unpackingType == ORBITER_VESSEL) 
 		{
-			cargoInfo.spawnModule = _strdup(dataStruct.spawnModule.c_str());
+			cargoInfo.spawnModule = strdup(dataStruct.spawnModule.c_str());
 			cargoInfo.unpackingMode = static_cast<UnpackingMode>(dataStruct.unpackingMode);
 
 			if (cargoInfo.unpackingMode == DELAYING) cargoInfo.unpackingDelay = dataStruct.unpackingDelay;
@@ -324,12 +320,12 @@ VesselAPI::GrappleResult VesselAPI::GrappleCargo(int slot)
 	VECTOR3 pos, rot, dir;
 	vessel->GetAttachmentParams(attachsMap[slot].attachHandle, pos, rot, dir);
 
-	for (DWORD vesselIndex = 0; vesselIndex < oapiGetVesselCount(); vesselIndex++)
+	for (int vesselIndex = 0; vesselIndex < oapiGetVesselCount(); vesselIndex++)
 	{
 		VESSEL* cargo = oapiGetVesselInterface(oapiGetVesselByIndex(vesselIndex));
 
 		// If the vessel is UCSO cargo
-		if (strncmp(cargo->GetClassNameA(), "UCSO", 4) != 0) continue;
+		if (strncmp(cargo->GetClassName(), "UCSO", 4) != 0) continue;
 		
 		VECTOR3 cargoPos;
 		// Get the cargo position and convert it to local
@@ -503,12 +499,12 @@ bool VesselAPI::PackCargo()
 
 	std::map<double, ResourceResult> cargoMap;
 
-	for (DWORD vesselIndex = 0; vesselIndex < oapiGetVesselCount(); vesselIndex++)
+	for (int vesselIndex = 0; vesselIndex < oapiGetVesselCount(); vesselIndex++)
 	{
 		VESSEL* cargo = oapiGetVesselInterface(oapiGetVesselByIndex(vesselIndex));
 
 		// If the vessel isn't a UCSO cargo
-		if (strncmp(cargo->GetClassNameA(), "UCSO", 4) != 0) continue;
+		if (strncmp(cargo->GetClassName(), "UCSO", 4) != 0) continue;
 
 		VECTOR3 pos;
 		vessel->GetRelativePos(cargo->GetHandle(), pos);
@@ -562,12 +558,12 @@ bool VesselAPI::UnpackCargo()
 
 	std::map<double, ResourceResult> cargoMap;
 
-	for (DWORD vesselIndex = 0; vesselIndex < oapiGetVesselCount(); vesselIndex++)
+	for (int vesselIndex = 0; vesselIndex < oapiGetVesselCount(); vesselIndex++)
 	{
 		VESSEL* cargo = oapiGetVesselInterface(oapiGetVesselByIndex(vesselIndex));
 
 		// If the vessel is UCSO cargo
-		if (strncmp(cargo->GetClassNameA(), "UCSO", 4) != 0) continue;
+		if (strncmp(cargo->GetClassName(), "UCSO", 4) != 0) continue;
 
 		VECTOR3 pos;
 		vessel->GetRelativePos(cargo->GetHandle(), pos);
@@ -703,7 +699,7 @@ double VesselAPI::DrainStationOrUnpackedResource(const char* resource, double ma
 {
 	if (!version || mass <= 0 || !resource || !*resource) return 0;
 
-	for (DWORD vesselIndex = 0; vesselIndex < oapiGetVesselCount(); vesselIndex++)
+	for (int vesselIndex = 0; vesselIndex < oapiGetVesselCount(); vesselIndex++)
 	{
 		VESSEL* oVessel = oapiGetVesselInterface(oapiGetVesselByIndex(vesselIndex));
 
@@ -712,7 +708,7 @@ double VesselAPI::DrainStationOrUnpackedResource(const char* resource, double ma
 
 		if ((length(pos) - oVessel->GetSize()) > resourceRange) continue;
 
-		if (strncmp(oVessel->GetClassNameA(), "UCSO", 4) == 0)
+		if (strncmp(oVessel->GetClassName(), "UCSO", 4) == 0)
 		{
 			UCSO::CustomCargo* customCargo = GetCustomCargo(oVessel->GetHandle());
 
@@ -737,13 +733,13 @@ double VesselAPI::DrainStationOrUnpackedResource(const char* resource, double ma
 		}
 
 		// Search through the vessel attachments to check if it's a station
-		for (DWORD attachIndex = 0; attachIndex < oVessel->AttachmentCount(true); attachIndex++)
+		for (int attachIndex = 0; attachIndex < oVessel->AttachmentCount(true); attachIndex++)
 		{
 			if (oVessel->GetAttachmentId(oVessel->GetAttachmentHandle(true, attachIndex)) != "UCSO_ST") continue;
 
 			// Set the vessel configuration file
 			std::string configFile = "Vessels/";
-			configFile += oVessel->GetClassNameA();
+			configFile += oVessel->GetClassName();
 			configFile += ".cfg";
 
 			// Open the file
@@ -818,12 +814,12 @@ VESSEL* VesselAPI::GetNearestBreathableCargo()
 
 	std::pair<double, VESSEL*> pair = { breathableRange, nullptr };
 
-	for (DWORD vesselIndex = 0; vesselIndex < oapiGetVesselCount(); vesselIndex++)
+	for (int vesselIndex = 0; vesselIndex < oapiGetVesselCount(); vesselIndex++)
 	{
 		VESSEL* cargo = oapiGetVesselInterface(oapiGetVesselByIndex(vesselIndex));
 
 		// If the vessel isn't a UCSO cargo
-		if (strncmp(cargo->GetClassNameA(), "UCSO", 4) != 0) continue;
+		if (strncmp(cargo->GetClassName(), "UCSO", 4) != 0) continue;
 
 		VECTOR3 pos;
 		vessel->GetRelativePos(cargo->GetHandle(), pos);
@@ -857,7 +853,7 @@ const char* VesselAPI::SetSpawnName(const char* spawnName)
 {
 	std::string name = spawnName;
 	UCSO::SetSpawnName(name);
-	return _strdup(name.c_str());
+	return strdup(name.c_str());
 }
 
 void VesselAPI::SetGroundRotation(VESSELSTATUS2& status, double spawnHeight) { UCSO::SetGroundRotation(status, spawnHeight); }
@@ -880,11 +876,11 @@ std::vector<VECTOR3> VesselAPI::GetGroundList(VECTOR3 initialPos)
 {
 	std::vector<VECTOR3> groundList;
 
-	for (DWORD vesselIndex = 0; vesselIndex < oapiGetVesselCount(); vesselIndex++)
+	for (int vesselIndex = 0; vesselIndex < oapiGetVesselCount(); vesselIndex++)
 	{
 		VESSEL* cargo = oapiGetVesselInterface(oapiGetVesselByIndex(vesselIndex));
 
-		if (!cargo->GroundContact() || strncmp(cargo->GetClassNameA(), "UCSO", 4) != 0) continue;
+		if (!cargo->GroundContact() || strncmp(cargo->GetClassName(), "UCSO", 4) != 0) continue;
 
 		VECTOR3 cargoPos;
 
