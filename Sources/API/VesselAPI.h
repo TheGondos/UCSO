@@ -98,7 +98,7 @@ public:
 
 private:
 	VESSEL* vessel;
-	const char* version = nullptr;
+	char* version = nullptr;
 	oapi::DynamicModule *customCargoDll = nullptr;
 	CustomCargoFunction GetCustomCargo = nullptr;
 

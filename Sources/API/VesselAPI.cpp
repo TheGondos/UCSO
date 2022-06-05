@@ -38,7 +38,8 @@ VesselAPI::VesselAPI(VESSEL* vessel)
 		GetVersionFunction GetCargoVersion = reinterpret_cast<GetVersionFunction>((*ucsoDll)["GetUCSOVersion"]);
 
 		// If the function is found, set the version
-		if (GetCargoVersion) version = GetCargoVersion();
+		// Since the module is unloaded, we need to copy the version string
+		if (GetCargoVersion) version = strdup(GetCargoVersion());
 
 		oapi::ModuleLoader::Unload(ucsoDll);
 	} 
@@ -57,6 +58,7 @@ VesselAPI::VesselAPI(VESSEL* vessel)
 
 		oapiWriteLog("UCSO API Warning: Couldn't load the custom cargo API");
 
+		if(version) free(version);
 		version = nullptr;
 	}
 
@@ -64,7 +66,10 @@ VesselAPI::VesselAPI(VESSEL* vessel)
 	if (version) InitAvailableCargo();
 }
 
-VesselAPI::~VesselAPI() { if (customCargoDll) oapi::ModuleLoader::Unload(customCargoDll); }
+VesselAPI::~VesselAPI() {
+	if(version) free(version);
+	if (customCargoDll) oapi::ModuleLoader::Unload(customCargoDll);
+}
 
 const char* VesselAPI::GetUCSOVersion() { return version; }
 

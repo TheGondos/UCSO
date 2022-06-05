@@ -21,7 +21,7 @@
 
 #pragma once
 #include "../API/Helper.h"
-#include <string>
+
 DLLCLBK const char* GetUCSOVersion() { return "1.1.1"; }
 
 namespace UCSO
