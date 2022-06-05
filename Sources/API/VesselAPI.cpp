@@ -30,31 +30,31 @@ VesselAPI::VesselAPI(VESSEL* vessel)
 	this->vessel = vessel;
 
 	// Load cargo DLL
-	oapi::DynamicModule *ucsoDll = oapi::ModuleLoader::Load("Modules/UCSO/libCargo.so");
+	MODULEHANDLE ucsoDll = oapiModuleLoad("Modules/UCSO/libCargo.so");
 
 	// If the DLL is loaded
 	if (ucsoDll)
 	{
-		GetVersionFunction GetCargoVersion = reinterpret_cast<GetVersionFunction>((*ucsoDll)["GetUCSOVersion"]);
+		GetVersionFunction GetCargoVersion = reinterpret_cast<GetVersionFunction>(oapiModuleGetProcAddress(ucsoDll, "GetUCSOVersion"));
 
 		// If the function is found, set the version
 		// Since the module is unloaded, we need to copy the version string
 		if (GetCargoVersion) version = strdup(GetCargoVersion());
 
-		oapi::ModuleLoader::Unload(ucsoDll);
+		oapiModuleUnload(ucsoDll);
 	} 
 
 	if (!version) oapiWriteLog("UCSO API Warning: Couldn't load the cargo API");
 
 	// Load custom cargo DLL
-	customCargoDll = oapi::ModuleLoader::Load("Modules/UCSO/libCustomCargo.so");
+	customCargoDll = oapiModuleLoad("Modules/UCSO/libCustomCargo.so");
 
-	if (customCargoDll) GetCustomCargo = reinterpret_cast<CustomCargoFunction>((*customCargoDll)["GetCustomCargo"]);
+	if (customCargoDll) GetCustomCargo = reinterpret_cast<CustomCargoFunction>(oapiModuleGetProcAddress(customCargoDll, "GetCustomCargo"));
 
 	// If the DLL isn't loaded or the function couldn't be found
 	if (!GetCustomCargo) 
 	{
-		if (customCargoDll) oapi::ModuleLoader::Unload(customCargoDll);
+		if (customCargoDll) oapiModuleUnload(customCargoDll);
 
 		oapiWriteLog("UCSO API Warning: Couldn't load the custom cargo API");
 
@@ -68,7 +68,7 @@ VesselAPI::VesselAPI(VESSEL* vessel)
 
 VesselAPI::~VesselAPI() {
 	if(version) free(version);
-	if (customCargoDll) oapi::ModuleLoader::Unload(customCargoDll);
+	if (customCargoDll) oapiModuleUnload(customCargoDll);
 }
 
 const char* VesselAPI::GetUCSOVersion() { return version; }

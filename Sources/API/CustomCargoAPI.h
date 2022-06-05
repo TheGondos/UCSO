@@ -35,7 +35,7 @@ namespace UCSO
 
 		typedef void (*CustomCargoFunction)(CustomCargo*);
 
-		oapi::DynamicModule *customCargoDll;
+		MODULEHANDLE customCargoDll;
 		CustomCargoFunction AddCustomCargo = nullptr;
 		CustomCargoFunction DeleteCustomCargo = nullptr;
 	};

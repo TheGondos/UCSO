@@ -99,7 +99,7 @@ public:
 private:
 	VESSEL* vessel;
 	char* version = nullptr;
-	oapi::DynamicModule *customCargoDll = nullptr;
+	MODULEHANDLE customCargoDll = nullptr;
 	CustomCargoFunction GetCustomCargo = nullptr;
 
 	struct SlotData 

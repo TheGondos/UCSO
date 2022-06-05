@@ -26,24 +26,24 @@ UCSO::CustomCargoAPI::CustomCargoAPI(CustomCargo* customCargo)
 	this->customCargo = customCargo;
 
 	// Load the custom cargo DLL
-	customCargoDll = oapi::ModuleLoader::Load("Modules/UCSO/libCustomCargo.so");
+	customCargoDll = oapiModuleLoad("Modules/UCSO/libCustomCargo.so");
 
 	if (customCargoDll)
 	{
-		AddCustomCargo = reinterpret_cast<CustomCargoFunction>((*customCargoDll)["AddCustomCargo"]);
+		AddCustomCargo = reinterpret_cast<CustomCargoFunction>(oapiModuleGetProcAddress(customCargoDll, "AddCustomCargo"));
 
-		DeleteCustomCargo = reinterpret_cast<CustomCargoFunction>((*customCargoDll)["DeleteCustomCargo"]);
+		DeleteCustomCargo = reinterpret_cast<CustomCargoFunction>(oapiModuleGetProcAddress(customCargoDll, "DeleteCustomCargo"));
 	}
 
 	// If the DLL is loaded and both functions are found
 	if (AddCustomCargo && DeleteCustomCargo) AddCustomCargo(customCargo);
 	else
 	{
-		if (customCargoDll) oapi::ModuleLoader::Unload(customCargoDll);
+		if (customCargoDll) oapiModuleUnload(customCargoDll);
 		oapiWriteLog("UCSO Fatal Error: Couldn't load the custom cargo API");
 		// Kill Orbiter
 		throw;
 	}
 }
 
-UCSO::CustomCargoAPI::~CustomCargoAPI() { DeleteCustomCargo(customCargo); oapi::ModuleLoader::Unload(customCargoDll); }
+UCSO::CustomCargoAPI::~CustomCargoAPI() { DeleteCustomCargo(customCargo); oapiModuleUnload(customCargoDll); }
