@@ -3,7 +3,6 @@ LampCargo.cpp
 )
 
 target_include_directories(LampCargo PUBLIC
-	${ORBITER_SOURCE_SDK_INCLUDE_DIR}
 	${ORBITER_BINARY_SDK_DIR}/include
 )
 

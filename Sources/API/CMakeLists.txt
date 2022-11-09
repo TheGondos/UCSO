@@ -5,7 +5,7 @@ add_library(UCSO_API SHARED
 )
 
 target_include_directories(UCSO_API PUBLIC
-	${ORBITER_SOURCE_SDK_INCLUDE_DIR}
+	${ORBITER_BINARY_SDK_DIR}/include
 )
 
 target_link_libraries(UCSO_API

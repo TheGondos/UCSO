@@ -3,7 +3,7 @@ add_library(CustomCargo SHARED
 )
 
 target_include_directories(CustomCargo PUBLIC
-	${ORBITER_SOURCE_SDK_INCLUDE_DIR}
+	${ORBITER_BINARY_SDK_DIR}/include
 )
 
 target_link_libraries(CustomCargo
